@@ -1,6 +1,20 @@
 import { db } from './firebase';
 import { collection, addDoc, Timestamp } from 'firebase/firestore';
 
+// Mock geocoding function (in a real app, you would use Google's Geocoding API)
+const mockGeocode = (address: string): { lat: number; lng: number } => {
+  // San Francisco center coordinates
+  const defaultCenter = {
+    lat: 37.7749,
+    lng: -122.4194
+  };
+  
+  // Generate a random position near San Francisco
+  const lat = defaultCenter.lat + (Math.random() - 0.5) * 0.05;
+  const lng = defaultCenter.lng + (Math.random() - 0.5) * 0.05;
+  return { lat, lng };
+};
+
 // Sample property data
 const sampleProperties = [
   // Original properties
@@ -290,8 +304,18 @@ export const seedDatabase = async () => {
     const addedProperties = [];
     
     for (const property of sampleProperties) {
-      const docRef = await addDoc(propertiesCollection, property);
-      addedProperties.push({ id: docRef.id, ...property });
+      // Generate coordinates for each property
+      const { lat, lng } = mockGeocode(property.address);
+      
+      // Add coordinates to the property data
+      const propertyWithCoords = {
+        ...property,
+        lat,
+        lng
+      };
+      
+      const docRef = await addDoc(propertiesCollection, propertyWithCoords);
+      addedProperties.push({ id: docRef.id, ...propertyWithCoords });
       console.log(`Added property with ID: ${docRef.id}`);
     }
     

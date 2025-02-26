@@ -17,6 +17,10 @@ interface Property {
   lng?: number;
 }
 
+interface InteractiveMapProps {
+  searchedLocation: { lat: number; lng: number } | null;
+}
+
 const containerStyle = {
   width: '100%',
   height: '100%',
@@ -37,11 +41,12 @@ const mockGeocode = (address: string): { lat: number; lng: number } => {
   return { lat, lng };
 };
 
-const InteractiveMap: React.FC = () => {
+const InteractiveMap: React.FC<InteractiveMapProps> = ({ searchedLocation }) => {
   const [properties, setProperties] = useState<Property[]>([]);
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
   const [loading, setLoading] = useState(true);
   const [mapInstance, setMapInstance] = useState<google.maps.Map | null>(null);
+  const [searchMarker, setSearchMarker] = useState<Property | null>(null);
 
   const { isLoaded } = useJsApiLoader({
     id: 'google-map-script',
@@ -61,8 +66,15 @@ const InteractiveMap: React.FC = () => {
         
         querySnapshot.forEach((doc) => {
           const data = doc.data();
-          // Add geocoded coordinates
-          const { lat, lng } = mockGeocode(data.address);
+          // Add geocoded coordinates if they don't exist
+          let lat = data.lat;
+          let lng = data.lng;
+          
+          if (!lat || !lng) {
+            const coords = mockGeocode(data.address);
+            lat = coords.lat;
+            lng = coords.lng;
+          }
           
           propertiesList.push({
             id: doc.id,
@@ -90,6 +102,33 @@ const InteractiveMap: React.FC = () => {
     }
   }, [isLoaded]);
 
+  // Handle searched location updates
+  useEffect(() => {
+    if (searchedLocation && mapInstance) {
+      // Create a temporary marker for the searched location
+      const newSearchMarker: Property = {
+        id: 'search-marker',
+        address: 'Searched Location',
+        estimatedDays: 0,
+        permitType: 'residential',
+        confidence: 0,
+        riskLevel: 'low',
+        searchDate: new Date().toISOString().split('T')[0],
+        lat: searchedLocation.lat,
+        lng: searchedLocation.lng
+      };
+      
+      setSearchMarker(newSearchMarker);
+      
+      // Center the map on the searched location
+      mapInstance.panTo(searchedLocation);
+      mapInstance.setZoom(15); // Zoom in closer
+      
+      // Select the marker to show info window
+      setSelectedProperty(newSearchMarker);
+    }
+  }, [searchedLocation, mapInstance]);
+
   const onLoad = useCallback((map: google.maps.Map) => {
     setMapInstance(map);
   }, []);
@@ -98,7 +137,19 @@ const InteractiveMap: React.FC = () => {
     setMapInstance(null);
   }, []);
 
-  const getMarkerIcon = (permitType: string, riskLevel: string) => {
+  const getMarkerIcon = (permitType: string, riskLevel: string, isSearchMarker: boolean = false) => {
+    // Special styling for search marker
+    if (isSearchMarker) {
+      return {
+        path: google.maps.SymbolPath.CIRCLE,
+        fillColor: '#ef4444', // Red color for search marker
+        fillOpacity: 1,
+        strokeWeight: 2,
+        strokeColor: '#ffffff',
+        scale: 12
+      };
+    }
+    
     // Base color based on permit type
     let fillColor = permitType === 'residential' ? '#7c3aed' : '#3b82f6';
     
@@ -168,15 +219,28 @@ const InteractiveMap: React.FC = () => {
           fullscreenControl: true
         }}
       >
+        {/* Regular property markers */}
         {properties.map((property) => (
           <Marker
             key={property.id}
-            position={{ lat: property.lat!, lng: property.lng !}}
+            position={{ lat: property.lat!, lng: property.lng! }}
             onClick={() => setSelectedProperty(property)}
             icon={getMarkerIcon(property.permitType, property.riskLevel)}
             animation={google.maps.Animation.DROP}
           />
         ))}
+
+        {/* Search marker */}
+        {searchMarker && (
+          <Marker
+            key="search-marker"
+            position={{ lat: searchMarker.lat!, lng: searchMarker.lng! }}
+            onClick={() => setSelectedProperty(searchMarker)}
+            icon={getMarkerIcon('residential', 'low', true)}
+            animation={google.maps.Animation.BOUNCE}
+            zIndex={1000} // Ensure it's on top of other markers
+          />
+        )}
 
         {selectedProperty && (
           <InfoWindow
@@ -184,13 +248,23 @@ const InteractiveMap: React.FC = () => {
             onCloseClick={() => setSelectedProperty(null)}
           >
             <div className="p-2 max-w-xs">
-              <h3 className="font-medium text-gray-800 mb-1">{selectedProperty.address}</h3>
-              <div className="text-sm text-gray-600 space-y-1">
-                <p>Permit Type: <span className="capitalize">{selectedProperty.permitType}</span></p>
-                <p>Processing Time: {selectedProperty.estimatedDays} days</p>
-                <p>Risk Level: <span className="capitalize">{selectedProperty.riskLevel}</span></p>
-                <p>Confidence: {selectedProperty.confidence}%</p>
-              </div>
+              <h3 className="font-medium text-gray-800 mb-1">
+                {selectedProperty.id === 'search-marker' ? 'Searched Location' : selectedProperty.address}
+              </h3>
+              {selectedProperty.id !== 'search-marker' && (
+                <div className="text-sm text-gray-600 space-y-1">
+                  <p>Permit Type: <span className="capitalize">{selectedProperty.permitType}</span></p>
+                  <p>Processing Time: {selectedProperty.estimatedDays} days</p>
+                  <p>Risk Level: <span className="capitalize">{selectedProperty.riskLevel}</span></p>
+                 <p>Confidence: {selectedProperty.confidence}%</p>
+                </div>
+              )}
+              {selectedProperty.id === 'search-marker' && (
+                <div className="text-sm text-gray-600">
+                  <p className="text-red-500 font-medium">Current search result</p>
+                  <p className="text-xs mt-1">Save this property to add it to your collection</p>
+                </div>
+              )}
             </div>
           </InfoWindow>
         )}
@@ -211,6 +285,10 @@ const InteractiveMap: React.FC = () => {
           <div className="flex items-center">
             <span className="inline-block w-3 h-3 rounded-full bg-blue-500 mr-2"></span>
             <span>Commercial</span>
+          </div>
+          <div className="flex items-center">
+            <span className="inline-block w-3 h-3 rounded-full bg-red-500 mr-2"></span>
+            <span>Search</span>
           </div>
         </div>
       </div>

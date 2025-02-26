@@ -14,6 +14,8 @@ interface PredictionResult {
   riskLevel: 'low' | 'medium' | 'high';
   searchDate?: string;
   id?: string;
+  lat?: number;
+  lng?: number;
 }
 
 interface Notification {
@@ -67,6 +69,7 @@ function App() {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [allAddresses, setAllAddresses] = useState<string[]>([]);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [searchedLocation, setSearchedLocation] = useState<{lat: number, lng: number} | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
   const notificationsRef = useRef<HTMLDivElement>(null);
@@ -113,7 +116,9 @@ function App() {
             permitType: data.permitType,
             confidence: data.confidence,
             riskLevel: data.riskLevel,
-            searchDate: data.searchDate
+            searchDate: data.searchDate,
+            lat: data.lat,
+            lng: data.lng
           });
           addresses.push(data.address);
         });
@@ -184,16 +189,38 @@ function App() {
     };
   }, []);
 
+  // Mock geocoding function (in a real app, you would use Google's Geocoding API)
+  const mockGeocode = (address: string): { lat: number; lng: number } => {
+    // Generate a random position near San Francisco
+    const defaultCenter = {
+      lat: 37.7749,
+      lng: -122.4194
+    };
+    const lat = defaultCenter.lat + (Math.random() - 0.5) * 0.05;
+    const lng = defaultCenter.lng + (Math.random() - 0.5) * 0.05;
+    return { lat, lng };
+  };
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Generate coordinates for the searched address
+    const coordinates = mockGeocode(searchQuery);
+    
     setPrediction({
       address: searchQuery,
       estimatedDays: 45,
       permitType: 'residential',
       confidence: 85,
       riskLevel: 'low',
-      searchDate: new Date().toISOString().split('T')[0]
+      searchDate: new Date().toISOString().split('T')[0],
+      lat: coordinates.lat,
+      lng: coordinates.lng
     });
+    
+    // Update the map with the searched location
+    setSearchedLocation(coordinates);
+    
     setShowSuggestions(false);
   };
 
@@ -218,6 +245,9 @@ function App() {
     setSearchQuery(address);
     setShowSuggestions(false);
     
+    // Generate coordinates for the selected address
+    const coordinates = mockGeocode(address);
+    
     // Auto-submit the search
     setPrediction({
       address: address,
@@ -225,8 +255,13 @@ function App() {
       permitType: 'residential',
       confidence: 85,
       riskLevel: 'low',
-      searchDate: new Date().toISOString().split('T')[0]
+      searchDate: new Date().toISOString().split('T')[0],
+      lat: coordinates.lat,
+      lng: coordinates.lng
     });
+    
+    // Update the map with the searched location
+    setSearchedLocation(coordinates);
   };
 
   const displayToast = (message: string) => {
@@ -247,6 +282,8 @@ function App() {
         confidence: prediction.confidence,
         riskLevel: prediction.riskLevel,
         searchDate: prediction.searchDate,
+        lat: prediction.lat,
+        lng: prediction.lng,
         createdAt: Timestamp.now()
       };
       
@@ -392,9 +429,6 @@ function App() {
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-3">
-              <div className="bg-gradient-to-r from-purple-600 to-blue-500 p-2.5 rounded-xl shadow-md">
-                <Building2 className="h-8 w-8 text-white" />
-              </div>
               <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent">
                 LandIQ
               </h1>
@@ -620,7 +654,7 @@ function App() {
               <h2 className="bento-title">Property Map</h2>
             </div>
             <div className="h-[400px] rounded-lg overflow-hidden">
-              <InteractiveMap />
+              <InteractiveMap searchedLocation={searchedLocation} />
             </div>
           </div>
 
