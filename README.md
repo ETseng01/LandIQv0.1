@@ -4,8 +4,9 @@ First Demo in production.
 Launched and tested with Stackblitz
 
 Tech Stack:
-Vite
+Vite 
 React
+Tailwind CSS
 JavaScript
 TypeScript
 Firebase
