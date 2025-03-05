@@ -1,3 +1,28 @@
+/**
+ * Purpose:
+ * Sets compiler options and project settings for TypeScript.
+ * It controls how the TypeScript compiler interacts with the project files, specifying which files to include,
+ * how to handle type-checking, module resolution, JSX processing, and other compiler behaviors.
+ * 
+ * Key Settings:
+ * - "target": Specifies the ECMAScript target version.
+ * - "module": Defines the module system (ESNext).
+ * - "strict": Enables all strict type-checking options for maximum type safety.
+ * - "jsx": Configures JSX processing mode, set for React 17+ usage.
+ * - "noEmit": True to prevent the compiler from emitting output files, useful when TypeScript is used for type-checking only.
+ * 
+ * Usage Notes:
+ * - Ensure to review and update the "include" array to match the directory structure of your project.
+ * - "moduleResolution" is set to "bundler" to optimize interaction with bundlers like Webpack or Rollup.
+ * - Strict mode is turned on to enforce a higher level of type safety and best practices.
+ * 
+ * Modification Advice:
+ * When modifying this file, consider the impact of changes on the build process and team workflows.
+ * Test changes locally before applying to ensure that the compiler's behavior aligns with the project's requirements.
+ * 
+ * This file is integral to the TypeScript setup in our project; please handle with care and update documentation as necessary.
+ */
+
 {
   "compilerOptions": {
     "target": "ES2020",
