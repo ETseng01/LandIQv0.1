@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { GoogleMap, useJsApiLoader, Marker, InfoWindow } from '@react-google-maps/api';
 import { db } from '../firebase';
-import { collection, getDocs, query, orderBy } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy, limit } from 'firebase/firestore';
 import { MapPin } from 'lucide-react';
 
 interface Property {
@@ -12,7 +12,6 @@ interface Property {
   confidence: number;
   riskLevel: 'low' | 'medium' | 'high';
   searchDate: string;
-  // For map positioning
   lat?: number;
   lng?: number;
 }
@@ -56,9 +55,11 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({ searchedLocation }) => 
   useEffect(() => {
     const fetchProperties = async () => {
       try {
+        console.log('Fetching properties...');
         const propertiesQuery = query(
           collection(db, 'properties'),
-          orderBy('createdAt', 'desc')
+          orderBy('createdAt', 'desc'),
+          limit(50) // Limit to 50 properties for better performance
         );
         
         const querySnapshot = await getDocs(propertiesQuery);
@@ -89,6 +90,7 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({ searchedLocation }) => 
           });
         });
         
+        console.log('Fetched properties:', propertiesList.length);
         setProperties(propertiesList);
       } catch (error) {
         console.error("Error fetching properties for map: ", error);
@@ -256,7 +258,7 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({ searchedLocation }) => 
                   <p>Permit Type: <span className="capitalize">{selectedProperty.permitType}</span></p>
                   <p>Processing Time: {selectedProperty.estimatedDays} days</p>
                   <p>Risk Level: <span className="capitalize">{selectedProperty.riskLevel}</span></p>
-                 <p>Confidence: {selectedProperty.confidence}%</p>
+                  <p>Confidence: {selectedProperty.confidence}%</p>
                 </div>
               )}
               {selectedProperty.id === 'search-marker' && (

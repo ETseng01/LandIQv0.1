@@ -1,27 +1,3 @@
-/**
- * Firestore Database Seeding and Mock Geocoding
- *
- * Overview:
- * This script includes a mock geocoding function to simulate address-to-coordinate conversion,
- * typically used in development environments to avoid using external API calls. It also defines
- * a set of sample property data and includes a function to seed these properties into a Firestore database.
- *
- * Functionality:
- * - `mockGeocode`: Simulates geocoding by providing pseudo-random coordinates near a predefined center (San Francisco).
- * - `sampleProperties`: An array of objects representing hypothetical properties with attributes like address, permit type, confidence level, and risk.
- * - `seedDatabase`: Asynchronously adds each property from `sampleProperties` to the Firestore database, incorporating geocoded coordinates.
- *
- * Dependencies:
- * - Firebase Firestore: Utilized for storing and retrieving the property data.
- * - Timestamp from Firebase: Used to set creation timestamps for seeded data.
- *
- * Usage:
- * This file is meant to be used in development to populate the database with initial data for testing or presentation purposes.
- *
- * Notes:
- * Replace the `mockGeocode` function with a real geocoding API such as Google's Geocoding API for production environments to ensure accurate address-to-coordinate conversion.
- */
-
 import { db } from './firebase';
 import { collection, addDoc, Timestamp } from 'firebase/firestore';
 

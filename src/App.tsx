@@ -1,29 +1,3 @@
-/**
- * Main Application Component for LandIQ
- * 
- * Overview:
- * This component serves as the root of the LandIQ application. It handles the UI and state management for the entire dashboard, 
- * facilitating interactions such as property searches, notifications, and user profiles. 
- * The application leverages React hooks for state management and integrates with Firebase Firestore for data persistence.
- * 
- * Features:
- * - Search functionality with predictive text and address autofill.
- * - Interactive map showcasing property locations.
- * - Dynamic notifications system with CRUD operations.
- * - User profile management and data seeding capabilities.
- * - Integration with Firebase for data operations including real-time updates.
- * 
- * Dependencies:
- * - React for building the UI, specifically using hooks like useState and useEffect for state management.
- * - Firebase Firestore for backend data storage and retrieval.
- * - Lucide-React for icons.
- * - Custom components like ProfilePage and GoogleMap for specialized functionalities.
- * 
- * Usage:
- * This file should be maintained with consideration for future scalability and potential integration with additional APIs or databases. 
- * Ensure that environment variables and Firebase configurations are updated according to deployment environments.
- */
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Search, MapPin, Clock, Building2, Home, Filter, Bell, User, History, BarChart3, Map, AlertTriangle, Save, Database, Menu, X, ChevronRight, Info, Check, CheckCheck } from 'lucide-react';
 import { db } from './firebase';

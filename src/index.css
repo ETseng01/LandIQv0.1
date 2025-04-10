@@ -1,32 +1,3 @@
-/**
- * Tailwind CSS Customizations for Project
- * 
- * Overview:
- * This CSS file is configured using Tailwind CSS directives to extend the default Tailwind utility classes.
- * It introduces custom styles and components for a web application, enhancing the default Tailwind setup with specific design patterns.
- * 
- * Details:
- * - Base Layer: Customizes basic elements like html and body, setting global styles such as scroll behavior, background gradients, and typography.
- * - Components Layer: Defines several reusable UI components like gradient cards, bento grid layouts, and hero sections, which include animations and responsive behavior.
- * - Utilities Layer: Enables the use of Tailwind's utility classes throughout the project.
- * 
- * Custom Components:
- * - `gradient-card`, `primary-gradient`, `secondary-gradient` for styled card designs.
- * - `glass-card` for a frosted-glass effect.
- * - `bento-grid` and `bento-item` for a responsive grid layout.
- * - `search-bar` with embedded search button and icon positioning.
- * - `hero-section` for impactful introductory areas with animated text.
- * 
- * Animations:
- * - Defines keyframes for animations like `fadeInUp` and `slideInRight`, enhancing the UI's dynamic aspects.
- * - Includes utility classes for floating and pulsing animations to apply throughout the project.
- * 
- * 
- * Usage:
- * Include this file in your project to extend the Tailwind CSS framework with custom styles tailored to the specific needs of the project.
- * Ensure to compile this with Tailwind CSS for the styles to take effect, aligning with the defined @tailwind directives at the beginning of the file.
- */
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

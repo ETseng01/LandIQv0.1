@@ -1,8 +1,3 @@
-/**
- * Central TypeScript configuration file managing project references.
- * It links to separate config files for different project segments like frontend and backend.
- * Use this file to maintain consistent TypeScript settings across various environments.
- */
 {
   "files": [],
   "references": [
