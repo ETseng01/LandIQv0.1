@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { GoogleMap, useJsApiLoader, Marker, InfoWindow } from '@react-google-maps/api';
+import { GoogleMap, useJsApiLoader, Marker, InfoWindow, StreetViewPanorama } from '@react-google-maps/api';
 import { db } from '../firebase';
 import { collection, getDocs, query, orderBy, limit } from 'firebase/firestore';
 import { MapPin } from 'lucide-react';
@@ -32,12 +32,21 @@ const defaultCenter = {
   lng: -122.4194
 };
 
-// Mock geocoding function (in a real app, you would use Google's Geocoding API)
-const mockGeocode = (address: string): { lat: number; lng: number } => {
-  // Generate a random position near San Francisco
-  const lat = defaultCenter.lat + (Math.random() - 0.5) * 0.05;
-  const lng = defaultCenter.lng + (Math.random() - 0.5) * 0.05;
-  return { lat, lng };
+// Sample architectural photos for demo
+const getArchitecturalPhotos = (permitType: string) => {
+  if (permitType === 'residential') {
+    return [
+      'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=400&h=300',
+      'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=400&h=300',
+      'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=400&h=300'
+    ];
+  } else {
+    return [
+      'https://images.unsplash.com/photo-1486325212027-8081e485255e?auto=format&fit=crop&w=400&h=300',
+      'https://images.unsplash.com/photo-1577985043696-8bd54d9f093f?auto=format&fit=crop&w=400&h=300',
+      'https://images.unsplash.com/photo-1554435493-93422e8220c8?auto=format&fit=crop&w=400&h=300'
+    ];
+  }
 };
 
 const InteractiveMap: React.FC<InteractiveMapProps> = ({ searchedLocation }) => {
@@ -46,6 +55,7 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({ searchedLocation }) => 
   const [loading, setLoading] = useState(true);
   const [mapInstance, setMapInstance] = useState<google.maps.Map | null>(null);
   const [searchMarker, setSearchMarker] = useState<Property | null>(null);
+  const [showStreetView, setShowStreetView] = useState(false);
 
   const { isLoaded } = useJsApiLoader({
     id: 'google-map-script',
@@ -59,7 +69,7 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({ searchedLocation }) => 
         const propertiesQuery = query(
           collection(db, 'properties'),
           orderBy('createdAt', 'desc'),
-          limit(50) // Limit to 50 properties for better performance
+          limit(50)
         );
         
         const querySnapshot = await getDocs(propertiesQuery);
@@ -67,16 +77,6 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({ searchedLocation }) => 
         
         querySnapshot.forEach((doc) => {
           const data = doc.data();
-          // Add geocoded coordinates if they don't exist
-          let lat = data.lat;
-          let lng = data.lng;
-          
-          if (!lat || !lng) {
-            const coords = mockGeocode(data.address);
-            lat = coords.lat;
-            lng = coords.lng;
-          }
-          
           propertiesList.push({
             id: doc.id,
             address: data.address,
@@ -85,12 +85,12 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({ searchedLocation }) => 
             confidence: data.confidence,
             riskLevel: data.riskLevel,
             searchDate: data.searchDate,
-            lat,
-            lng
+            lat: data.lat,
+            lng: data.lng
           });
         });
         
-        console.log('Fetched properties:', propertiesList.length);
+        console.log('Fetched properties:', propertiesList);
         setProperties(propertiesList);
       } catch (error) {
         console.error("Error fetching properties for map: ", error);
@@ -104,10 +104,8 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({ searchedLocation }) => 
     }
   }, [isLoaded]);
 
-  // Handle searched location updates
   useEffect(() => {
     if (searchedLocation && mapInstance) {
-      // Create a temporary marker for the searched location
       const newSearchMarker: Property = {
         id: 'search-marker',
         address: 'Searched Location',
@@ -121,12 +119,8 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({ searchedLocation }) => 
       };
       
       setSearchMarker(newSearchMarker);
-      
-      // Center the map on the searched location
       mapInstance.panTo(searchedLocation);
-      mapInstance.setZoom(15); // Zoom in closer
-      
-      // Select the marker to show info window
+      mapInstance.setZoom(15);
       setSelectedProperty(newSearchMarker);
     }
   }, [searchedLocation, mapInstance]);
@@ -140,11 +134,10 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({ searchedLocation }) => 
   }, []);
 
   const getMarkerIcon = (permitType: string, riskLevel: string, isSearchMarker: boolean = false) => {
-    // Special styling for search marker
     if (isSearchMarker) {
       return {
         path: google.maps.SymbolPath.CIRCLE,
-        fillColor: '#ef4444', // Red color for search marker
+        fillColor: '#ef4444',
         fillOpacity: 1,
         strokeWeight: 2,
         strokeColor: '#ffffff',
@@ -152,11 +145,9 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({ searchedLocation }) => 
       };
     }
     
-    // Base color based on permit type
     let fillColor = permitType === 'residential' ? '#7c3aed' : '#3b82f6';
-    
-    // Adjust opacity based on risk level
     let opacity = 1;
+    
     switch (riskLevel) {
       case 'low':
         opacity = 0.7;
@@ -196,70 +187,77 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({ searchedLocation }) => 
         onLoad={onLoad}
         onUnmount={onUnmount}
         options={{
-          styles: [
-            {
-              featureType: 'all',
-              elementType: 'geometry',
-              stylers: [{ color: '#f5f5f5' }]
-            },
-            {
-              featureType: 'water',
-              elementType: 'geometry',
-              stylers: [{ color: '#c9c9c9' }]
-            },
-            {
-              featureType: 'water',
-              elementType: 'labels.text.fill',
-              stylers: [{ color: '#9e9e9e' }]
-            }
-          ],
           disableDefaultUI: false,
           zoomControl: true,
           mapTypeControl: false,
-          streetViewControl: false,
+          streetViewControl: true,
           rotateControl: false,
           fullscreenControl: true
         }}
       >
-        {/* Regular property markers */}
         {properties.map((property) => (
           <Marker
             key={property.id}
             position={{ lat: property.lat!, lng: property.lng! }}
-            onClick={() => setSelectedProperty(property)}
+            onClick={() => {
+              setSelectedProperty(property);
+              setShowStreetView(false);
+            }}
             icon={getMarkerIcon(property.permitType, property.riskLevel)}
             animation={google.maps.Animation.DROP}
           />
         ))}
 
-        {/* Search marker */}
         {searchMarker && (
           <Marker
             key="search-marker"
             position={{ lat: searchMarker.lat!, lng: searchMarker.lng! }}
-            onClick={() => setSelectedProperty(searchMarker)}
+            onClick={() => {
+              setSelectedProperty(searchMarker);
+              setShowStreetView(false);
+            }}
             icon={getMarkerIcon('residential', 'low', true)}
             animation={google.maps.Animation.BOUNCE}
-            zIndex={1000} // Ensure it's on top of other markers
+            zIndex={1000}
           />
         )}
 
-        {selectedProperty && (
+        {selectedProperty && !showStreetView && (
           <InfoWindow
             position={{ lat: selectedProperty.lat!, lng: selectedProperty.lng! }}
             onCloseClick={() => setSelectedProperty(null)}
           >
-            <div className="p-2 max-w-xs">
-              <h3 className="font-medium text-gray-800 mb-1">
+            <div className="p-2 max-w-md">
+              <h3 className="font-medium text-gray-800 mb-2">
                 {selectedProperty.id === 'search-marker' ? 'Searched Location' : selectedProperty.address}
               </h3>
               {selectedProperty.id !== 'search-marker' && (
-                <div className="text-sm text-gray-600 space-y-1">
-                  <p>Permit Type: <span className="capitalize">{selectedProperty.permitType}</span></p>
-                  <p>Processing Time: {selectedProperty.estimatedDays} days</p>
-                  <p>Risk Level: <span className="capitalize">{selectedProperty.riskLevel}</span></p>
-                  <p>Confidence: {selectedProperty.confidence}%</p>
-                </div>
+                <>
+                  <div className="text-sm text-gray-600 space-y-1 mb-3">
+                    <p>Permit Type: <span className="capitalize">{selectedProperty.permitType}</span></p>
+                    <p>Processing Time: {selectedProperty.estimatedDays} days</p>
+                    <p>Risk Level: <span className="capitalize">{selectedProperty.riskLevel}</span></p>
+                    <p>Confidence: {selectedProperty.confidence}%</p>
+                  </div>
+                  <div className="space-y-2">
+                    <button
+                      onClick={() => setShowStreetView(true)}
+                      className="w-full bg-purple-600 text-white px-3 py-1.5 rounded-lg text-sm hover:bg-purple-700 transition-colors"
+                    >
+                      View Street View
+                    </button>
+                    <div className="grid grid-cols-3 gap-2 mt-3">
+                      {getArchitecturalPhotos(selectedProperty.permitType).map((url, index) => (
+                        <img
+                          key={index}
+                          src={url}
+                          alt={`Property ${index + 1}`}
+                          className="w-full h-24 object-cover rounded-lg"
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </>
               )}
               {selectedProperty.id === 'search-marker' && (
                 <div className="text-sm text-gray-600">
@@ -270,6 +268,14 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({ searchedLocation }) => 
             </div>
           </InfoWindow>
         )}
+
+        {selectedProperty && showStreetView && (
+          <StreetViewPanorama
+            position={{ lat: selectedProperty.lat!, lng: selectedProperty.lng! }}
+            visible={true}
+            onCloseClick={() => setShowStreetView(false)}
+          />
+        )}
       </GoogleMap>
 
       {loading && (
@@ -278,7 +284,9 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({ searchedLocation }) => 
         </div>
       )}
 
-      <div className="absolute bottom-4 left-4 bg-white/90 backdrop-blur-sm p-3 rounded-lg shadow-md">
+      {/* Map Legend */}
+      <div className="absolute bottom-4 left-4 bg-white/90 backdrop-blur-sm p-4 rounded-lg shadow-md">
+        <h4 className="font-medium text-gray-800 mb-2">Map Legend</h4>
         <div className="flex items-center space-x-4 text-sm">
           <div className="flex items-center">
             <span className="inline-block w-3 h-3 rounded-full bg-purple-500 mr-2"></span>

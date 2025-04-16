@@ -271,10 +271,21 @@ function App() {
   };
 
   const saveProperty = async () => {
-    if (!prediction) return;
-    
+    if (!prediction) {
+      console.error("Cannot save property: prediction is null");
+      displayToast('Error: No property data to save');
+      return;
+    }
+
+    console.log('Starting property save...', { prediction });
     setSavingProperty(true);
+
     try {
+      // Validate property data before saving
+      if (!prediction.address || !prediction.lat || !prediction.lng) {
+        throw new Error('Missing required property data');
+      }
+
       const propertyData = {
         address: prediction.address,
         estimatedDays: prediction.estimatedDays,
@@ -286,20 +297,28 @@ function App() {
         lng: prediction.lng,
         createdAt: Timestamp.now()
       };
-      
-      const docRef = await addDoc(collection(db, 'properties'), propertyData);
-      
+
+      console.log('Attempting to save property data:', propertyData);
+
+      // Get reference to properties collection
+      const propertiesCollection = collection(db, 'properties');
+      console.log('Got reference to properties collection');
+
+      // Add document to Firestore
+      const docRef = await addDoc(propertiesCollection, propertyData);
+      console.log('Successfully added document with ID:', docRef.id);
+
       // Add the new property to the state
       setSavedProperties(prev => [{
         ...prediction,
         id: docRef.id
       }, ...prev]);
-      
+
       // Add to addresses list for autofill
       if (!allAddresses.includes(prediction.address)) {
         setAllAddresses(prev => [...prev, prediction.address]);
       }
-      
+
       // Add a notification
       const newNotification: Notification = {
         id: Date.now().toString(),
@@ -309,16 +328,36 @@ function App() {
         read: false,
         type: 'success'
       };
-      
+
       setNotifications(prev => [newNotification, ...prev]);
-      
+
       // Show success message
       displayToast('Property saved successfully!');
-    } catch (error) {
-      console.error("Error saving property: ", error);
-      displayToast('Failed to save property. Please try again.');
+    } catch (error: any) {
+      console.error('Error saving property:', {
+        error,
+        code: error.code,
+        message: error.message,
+        stack: error.stack,
+        name: error.name
+      });
+
+      // Provide more specific error messages based on the error type
+      let errorMessage = 'Failed to save property. ';
+      if (error.code === 'permission-denied') {
+        errorMessage += 'Permission denied. Please check your authentication status.';
+      } else if (error.message.includes('Missing or insufficient permissions')) {
+        errorMessage += 'Insufficient permissions to perform this action.';
+      } else if (error.message === 'Missing required property data') {
+        errorMessage += 'Missing required property information.';
+      } else {
+        errorMessage += 'An unexpected error occurred. Please try again.';
+      }
+
+      displayToast(errorMessage);
     } finally {
       setSavingProperty(false);
+      console.log('Property save operation completed');
     }
   };
 
