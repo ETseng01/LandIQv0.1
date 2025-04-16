@@ -2,7 +2,7 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { GoogleMap, useJsApiLoader, Marker, InfoWindow, StreetViewPanorama } from '@react-google-maps/api';
 import { db } from '../firebase';
 import { collection, getDocs, query, orderBy, limit } from 'firebase/firestore';
-import { MapPin } from 'lucide-react';
+import { MapPin, Clock, Building2, Home, Map as MapIcon } from 'lucide-react';
 
 interface Property {
   id: string;
@@ -32,23 +32,6 @@ const defaultCenter = {
   lng: -122.4194
 };
 
-// Sample architectural photos for demo
-const getArchitecturalPhotos = (permitType: string) => {
-  if (permitType === 'residential') {
-    return [
-      'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=400&h=300',
-      'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=400&h=300',
-      'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=400&h=300'
-    ];
-  } else {
-    return [
-      'https://images.unsplash.com/photo-1486325212027-8081e485255e?auto=format&fit=crop&w=400&h=300',
-      'https://images.unsplash.com/photo-1577985043696-8bd54d9f093f?auto=format&fit=crop&w=400&h=300',
-      'https://images.unsplash.com/photo-1554435493-93422e8220c8?auto=format&fit=crop&w=400&h=300'
-    ];
-  }
-};
-
 const InteractiveMap: React.FC<InteractiveMapProps> = ({ searchedLocation }) => {
   const [properties, setProperties] = useState<Property[]>([]);
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
@@ -65,7 +48,6 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({ searchedLocation }) => 
   useEffect(() => {
     const fetchProperties = async () => {
       try {
-        console.log('Fetching properties...');
         const propertiesQuery = query(
           collection(db, 'properties'),
           orderBy('createdAt', 'desc'),
@@ -90,7 +72,6 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({ searchedLocation }) => 
           });
         });
         
-        console.log('Fetched properties:', propertiesList);
         setProperties(propertiesList);
       } catch (error) {
         console.error("Error fetching properties for map: ", error);
@@ -239,24 +220,13 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({ searchedLocation }) => 
                     <p>Risk Level: <span className="capitalize">{selectedProperty.riskLevel}</span></p>
                     <p>Confidence: {selectedProperty.confidence}%</p>
                   </div>
-                  <div className="space-y-2">
-                    <button
-                      onClick={() => setShowStreetView(true)}
-                      className="w-full bg-purple-600 text-white px-3 py-1.5 rounded-lg text-sm hover:bg-purple-700 transition-colors"
-                    >
-                      View Street View
-                    </button>
-                    <div className="grid grid-cols-3 gap-2 mt-3">
-                      {getArchitecturalPhotos(selectedProperty.permitType).map((url, index) => (
-                        <img
-                          key={index}
-                          src={url}
-                          alt={`Property ${index + 1}`}
-                          className="w-full h-24 object-cover rounded-lg"
-                        />
-                      ))}
-                    </div>
-                  </div>
+                  <button
+                    onClick={() => setShowStreetView(true)}
+                    className="w-full bg-purple-600 text-white px-3 py-1.5 rounded-lg text-sm hover:bg-purple-700 transition-colors flex items-center justify-center space-x-2"
+                  >
+                    <MapIcon className="h-4 w-4" />
+                    <span>View Street View</span>
+                  </button>
                 </>
               )}
               {selectedProperty.id === 'search-marker' && (

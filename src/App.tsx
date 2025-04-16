@@ -387,8 +387,8 @@ function App() {
       
       displayToast(`Successfully added ${addedProperties.length} sample properties to the database!`);
     } catch (error) {
-      console.error("Error seeding database: ", error);
-      displayToast('Failed to seed database. Please check console for details.');
+      console.error("Error syncing database: ", error);
+      displayToast('Failed to sync database. Please check console for details.');
     } finally {
       setSeeding(false);
     }
@@ -481,7 +481,7 @@ function App() {
                 className="nav-button primary-gradient"
               >
                 <Database className="h-4 w-4" />
-                <span>{seeding ? 'Seeding...' : 'Seed Database'}</span>
+                <span>{seeding ? 'Syncing...' : 'Sync Database'}</span>
               </button>
               <button 
                 ref={notificationButtonRef}
@@ -529,7 +529,7 @@ function App() {
                   className="flex items-center space-x-2 px-4 py-2 rounded-lg primary-gradient"
                 >
                   <Database className="h-4 w-4" />
-                  <span>{seeding ? 'Seeding...' : 'Seed Database'}</span>
+                  <span>{seeding ? 'Syncing...' : 'Sync Database'}</span>
                 </button>
                 <button 
                   onClick={toggleNotifications}

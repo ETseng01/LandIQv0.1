@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { db } from '../firebase';
 import { collection, getDocs, query, orderBy, deleteDoc, doc } from 'firebase/firestore';
 import { MapPin, Clock, Building2, Home, Trash2, ArrowLeft } from 'lucide-react';
+import PropertyDetails from './PropertyDetails';
 
 interface Property {
   id: string;
@@ -11,6 +12,8 @@ interface Property {
   confidence: number;
   riskLevel: 'low' | 'medium' | 'high';
   searchDate: string;
+  lat?: number;
+  lng?: number;
 }
 
 interface ProfilePageProps {
@@ -23,6 +26,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ onClose }) => {
   const [deleting, setDeleting] = useState<string | null>(null);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
+  const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
 
   useEffect(() => {
     fetchSavedProperties();
@@ -48,7 +52,9 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ onClose }) => {
           permitType: data.permitType,
           confidence: data.confidence,
           riskLevel: data.riskLevel,
-          searchDate: data.searchDate
+          searchDate: data.searchDate,
+          lat: data.lat,
+          lng: data.lng
         });
       });
       
@@ -150,8 +156,9 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ onClose }) => {
               {savedProperties.map((property, index) => (
                 <div 
                   key={property.id} 
-                  className="p-4 rounded-xl bg-gradient-to-br from-purple-50 to-blue-50 hover:from-purple-100 hover:to-blue-100 transition-all duration-300 animate-slideUp"
+                  className="p-4 rounded-xl bg-gradient-to-br from-purple-50 to-blue-50 hover:from-purple-100 hover:to-blue-100 transition-all duration-300 animate-slideUp cursor-pointer"
                   style={{ animationDelay: `${index * 0.1}s` }}
+                  onClick={() => setSelectedProperty(property)}
                 >
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
@@ -185,7 +192,10 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ onClose }) => {
                     </div>
                     
                     <button 
-                      onClick={() => handleDeleteProperty(property.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteProperty(property.id);
+                      }}
                       disabled={deleting === property.id}
                       className="ml-4 p-2 text-gray-400 hover:text-red-500 transition-colors rounded-full hover:bg-red-50"
                       title="Delete property"
@@ -203,6 +213,14 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ onClose }) => {
           )}
         </div>
       </div>
+      
+      {/* Property Details Modal */}
+      {selectedProperty && (
+        <PropertyDetails
+          property={selectedProperty}
+          onClose={() => setSelectedProperty(null)}
+        />
+      )}
       
       {/* Toast Notification */}
       {showToast && (
