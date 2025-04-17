@@ -376,7 +376,7 @@ function App() {
       // Add a notification
       const newNotification: Notification = {
         id: Date.now().toString(),
-        title: 'Database Seeded',
+        title: 'Database Synced',
         message: `${addedProperties.length} sample properties have been added to the database`,
         date: new Date().toISOString().split('T')[0],
         read: false,
