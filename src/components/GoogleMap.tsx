@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { GoogleMap, useJsApiLoader, Marker, InfoWindow, StreetViewPanorama } from '@react-google-maps/api';
 import { db } from '../firebase';
 import { collection, getDocs, query, orderBy, limit } from 'firebase/firestore';
@@ -33,76 +33,28 @@ const defaultCenter = {
   lng: -122.4194
 };
 
-// Helper function to check if circles overlap
-const doCirclesOverlap = (circle1: any, circle2: any) => {
-  const dx = circle1.center.lat - circle2.center.lat;
-  const dy = circle1.center.lng - circle2.center.lng;
-  const distance = Math.sqrt(dx * dx + dy * dy);
-  return distance < (circle1.radius + circle2.radius) / 5000; // Convert meters to degrees roughly
-};
-
-// Helper function to adjust circle radius to prevent overlap
-const adjustCircleRadius = (circles: any[]) => {
-  const adjustedCircles = [...circles];
-  let hasOverlap = true;
-  const minRadius = 200; // Minimum radius in meters
-  
-  while (hasOverlap) {
-    hasOverlap = false;
-    for (let i = 0; i < adjustedCircles.length; i++) {
-      for (let j = i + 1; j < adjustedCircles.length; j++) {
-        if (doCirclesOverlap(adjustedCircles[i], adjustedCircles[j])) {
-          hasOverlap = true;
-          // Reduce radius of the larger circle
-          if (adjustedCircles[i].radius > adjustedCircles[j].radius) {
-            adjustedCircles[i].radius = Math.max(adjustedCircles[i].radius * 0.9, minRadius);
-          } else {
-            adjustedCircles[j].radius = Math.max(adjustedCircles[j].radius * 0.9, minRadius);
-          }
-        }
-      }
-    }
-  }
-  return adjustedCircles;
-};
-
-// Generate mock regulatory data with adjusted placement
+// Generate mock regulatory data
 const generateMockRegulations = () => {
   const regulations = [];
-  const baseRadius = 800; // Base radius in meters
-  const gridSize = 3; // 3x3 grid
-  const latSpacing = 0.02; // Spacing between circles
-  const lngSpacing = 0.02;
-  
-  for (let i = 0; i < gridSize; i++) {
-    for (let j = 0; j < gridSize; j++) {
-      const lat = defaultCenter.lat + (i - 1) * latSpacing;
-      const lng = defaultCenter.lng + (j - 1) * lngSpacing;
-      
-      regulations.push({
-        id: `region-${i}-${j}`,
-        center: { lat, lng },
-        radius: baseRadius + Math.random() * 200, // Add some variation
-        restrictiveness: Math.random(),
-        permitTypes: ['residential', 'commercial', 'industrial'],
-        yearData: {
-          2020: Math.random(),
-          2021: Math.random(),
-          2022: Math.random(),
-          2023: Math.random(),
-          2024: Math.random(),
-        }
-      });
-    }
+  for (let i = 0; i < 10; i++) {
+    const lat = defaultCenter.lat + (Math.random() - 0.5) * 0.1;
+    const lng = defaultCenter.lng + (Math.random() - 0.5) * 0.1;
+    regulations.push({
+      id: `region-${i}`,
+      center: { lat, lng },
+      radius: Math.random() * 1000 + 500,
+      restrictiveness: Math.random(),
+      permitTypes: ['residential', 'commercial', 'industrial'],
+      yearData: {
+        2020: Math.random(),
+        2021: Math.random(),
+        2022: Math.random(),
+        2023: Math.random(),
+        2024: Math.random(),
+      }
+    });
   }
-  
-  // Add some random offset to make it look more natural
-  regulations.forEach(reg => {
-    reg.center.lat += (Math.random() - 0.5) * 0.01;
-    reg.center.lng += (Math.random() - 0.5) * 0.01;
-  });
-  
-  return adjustCircleRadius(regulations);
+  return regulations;
 };
 
 // Sample architectural photos for demo
@@ -206,6 +158,7 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({ searchedLocation }) => 
     }
   }, [searchedLocation, mapInstance]);
 
+  // Draw regulatory overlay
   useEffect(() => {
     if (!mapInstance) return;
 
@@ -216,7 +169,7 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({ searchedLocation }) => 
       }
     });
 
-    // Draw new circles with adjusted placement
+    // Draw new circles
     regulations.forEach(region => {
       if (permitType !== 'all' && !region.permitTypes.includes(permitType)) return;
 
@@ -232,8 +185,7 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({ searchedLocation }) => 
         strokeColor: '#374151',
         strokeWeight: 1,
         map: mapInstance,
-        clickable: true,
-        zIndex: Math.floor(restrictiveness * 10) // Higher restrictiveness = higher z-index
+        clickable: true
       });
 
       circle.addListener('click', () => {
@@ -256,7 +208,7 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({ searchedLocation }) => 
     setMapInstance(null);
   }, []);
 
-  const getMarkerIcon = (permitType: string, isSearchMarker: boolean = false) => {
+  const getMarkerIcon = (permitType: string, riskLevel: string, isSearchMarker: boolean = false) => {
     if (isSearchMarker) {
       return {
         path: google.maps.SymbolPath.CIRCLE,
@@ -268,10 +220,25 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({ searchedLocation }) => 
       };
     }
     
+    let fillColor = permitType === 'residential' ? '#7c3aed' : '#3b82f6';
+    let opacity = 1;
+    
+    switch (riskLevel) {
+      case 'low':
+        opacity = 0.7;
+        break;
+      case 'medium':
+        opacity = 0.85;
+        break;
+      case 'high':
+        opacity = 1;
+        break;
+    }
+    
     return {
       path: google.maps.SymbolPath.CIRCLE,
-      fillColor: permitType === 'residential' ? '#065f46' : '#404040',
-      fillOpacity: 1,
+      fillColor,
+      fillOpacity: opacity,
       strokeWeight: 2,
       strokeColor: '#ffffff',
       scale: 10
@@ -311,7 +278,7 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({ searchedLocation }) => 
               setSelectedProperty(property);
               setShowStreetView(false);
             }}
-            icon={getMarkerIcon(property.permitType)}
+            icon={getMarkerIcon(property.permitType, property.riskLevel)}
             animation={google.maps.Animation.DROP}
           />
         ))}
@@ -324,7 +291,7 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({ searchedLocation }) => 
               setSelectedProperty(searchMarker);
               setShowStreetView(false);
             }}
-            icon={getMarkerIcon('residential', true)}
+            icon={getMarkerIcon('residential', 'low', true)}
             animation={google.maps.Animation.BOUNCE}
             zIndex={1000}
           />

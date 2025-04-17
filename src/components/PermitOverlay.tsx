@@ -128,46 +128,21 @@ export const PermitLegend: React.FC = () => {
 
       <div
         className={`transition-all duration-300 ease-in-out ${
-          isExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+          isExpanded ? 'max-h-48 opacity-100' : 'max-h-0 opacity-0'
         } overflow-hidden`}
       >
-        <div className="p-4 space-y-4">
-          {/* Property Types */}
-          <div>
-            <h5 className="text-xs font-medium text-gray-700 mb-2">Property Types</h5>
-            <div className="space-y-2">
-              <div className="flex items-center space-x-2">
-                <div className="w-4 h-4 rounded-full bg-emerald-800" />
-                <span className="text-xs text-gray-600">Residential</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-4 h-4 rounded-full bg-neutral-700" />
-                <span className="text-xs text-gray-600">Commercial</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-4 h-4 rounded-full bg-red-500" />
-                <span className="text-xs text-gray-600">Search Location</span>
-              </div>
-            </div>
+        <div className="p-4 space-y-2">
+          <div className="flex items-center space-x-2">
+            <div className="w-4 h-4 bg-red-500 rounded-sm opacity-70" />
+            <span className="text-xs text-gray-600">Less Restrictive</span>
           </div>
-
-          {/* Regulatory Overlay */}
-          <div>
-            <h5 className="text-xs font-medium text-gray-700 mb-2">Regulatory Overlay</h5>
-            <div className="space-y-2">
-              <div className="flex items-center space-x-2">
-                <div className="w-4 h-4 bg-red-500 rounded-sm opacity-70" />
-                <span className="text-xs text-gray-600">Less Restrictive</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-4 h-4 bg-blue-500 rounded-sm opacity-70" />
-                <span className="text-xs text-gray-600">More Restrictive</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-4 h-4 border-2 border-gray-400 rounded-sm" />
-                <span className="text-xs text-gray-600">Municipality Boundary</span>
-              </div>
-            </div>
+          <div className="flex items-center space-x-2">
+            <div className="w-4 h-4 bg-blue-500 rounded-sm opacity-70" />
+            <span className="text-xs text-gray-600">More Restrictive</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <div className="w-4 h-4 border-2 border-gray-400 rounded-sm" />
+            <span className="text-xs text-gray-600">Municipality Boundary</span>
           </div>
         </div>
       </div>
