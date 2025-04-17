@@ -12,5 +12,5 @@ TypeScript,
 Firebase,
 Google Cloud Platform
 
-https://stackblitz.com/edit/bolt-vite-react-hgxt7jcq?file=index.html
-bolt-vite-react-hgxt7jcq
+hosted by StackBlitz:
+https://peppy-marzipan-41216d.netlify.app/
