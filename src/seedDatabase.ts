@@ -61,6 +61,96 @@ const sampleProperties = [
     riskLevel: 'high',
     searchDate: '2024-05-16',
     createdAt: Timestamp.now()
+  },
+  {
+    address: '333 Folsom Street, San Francisco, CA 94105',
+    estimatedDays: 40,
+    permitType: 'residential',
+    confidence: 88,
+    riskLevel: 'low',
+    searchDate: '2024-05-17',
+    createdAt: Timestamp.now()
+  },
+  {
+    address: '444 Bryant Street, San Francisco, CA 94107',
+    estimatedDays: 55,
+    permitType: 'commercial',
+    confidence: 82,
+    riskLevel: 'medium',
+    searchDate: '2024-05-18',
+    createdAt: Timestamp.now()
+  },
+  {
+    address: '555 Brannan Street, San Francisco, CA 94107',
+    estimatedDays: 35,
+    permitType: 'residential',
+    confidence: 91,
+    riskLevel: 'low',
+    searchDate: '2024-05-19',
+    createdAt: Timestamp.now()
+  },
+  {
+    address: '666 Harrison Street, San Francisco, CA 94107',
+    estimatedDays: 65,
+    permitType: 'commercial',
+    confidence: 75,
+    riskLevel: 'high',
+    searchDate: '2024-05-20',
+    createdAt: Timestamp.now()
+  },
+  {
+    address: '777 King Street, San Francisco, CA 94107',
+    estimatedDays: 50,
+    permitType: 'residential',
+    confidence: 87,
+    riskLevel: 'medium',
+    searchDate: '2024-05-21',
+    createdAt: Timestamp.now()
+  },
+  {
+    address: '888 Townsend Street, San Francisco, CA 94107',
+    estimatedDays: 45,
+    permitType: 'residential',
+    confidence: 89,
+    riskLevel: 'low',
+    searchDate: '2024-05-22',
+    createdAt: Timestamp.now()
+  },
+  {
+    address: '999 Division Street, San Francisco, CA 94107',
+    estimatedDays: 70,
+    permitType: 'commercial',
+    confidence: 73,
+    riskLevel: 'high',
+    searchDate: '2024-05-23',
+    createdAt: Timestamp.now()
+  },
+  {
+    address: '1010 Berry Street, San Francisco, CA 94107',
+    estimatedDays: 40,
+    permitType: 'residential',
+    confidence: 93,
+    riskLevel: 'low',
+    searchDate: '2024-05-24',
+    createdAt: Timestamp.now()
+  },
+  {
+    address: '1111 Channel Street, San Francisco, CA 94107',
+    estimatedDays: 55,
+    permitType: 'commercial',
+    confidence: 84,
+    riskLevel: 'medium',
+    searchDate: '2024-05-25',
+    createdAt: Timestamp.now()
+  },
+  {
+    address: '1212 De Haro Street, San Francisco, CA 94107',
+    estimatedDays: 30,
+    permitType: 'residential',
+    confidence: 94,
+    riskLevel: 'low',
+    searchDate: '2024-05-26',
+    createdAt: Timestamp.now()
   }
 ];
 

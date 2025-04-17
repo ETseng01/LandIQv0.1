@@ -1,6 +1,12 @@
 import React, { useState } from 'react';
 import { Layers, ChevronDown, ChevronUp } from 'lucide-react';
 
+// Enhanced permit overlay controls component
+// Author: Your Name
+// Last Modified: Current Date
+// Description: This component provides a user-friendly interface for controlling
+// map overlays, including opacity, year selection, and permit type filtering
+
 interface PermitOverlayControlsProps {
   opacity: number;
   setOpacity: (value: number) => void;
@@ -12,6 +18,7 @@ interface PermitOverlayControlsProps {
   setPermitType: (type: string) => void;
 }
 
+// Main controls component with collapsible interface
 export const PermitOverlayControls: React.FC<PermitOverlayControlsProps> = ({
   opacity,
   setOpacity,
@@ -109,6 +116,7 @@ export const PermitOverlayControls: React.FC<PermitOverlayControlsProps> = ({
   );
 };
 
+// Legend component for map overlay interpretation
 export const PermitLegend: React.FC = () => {
   const [isExpanded, setIsExpanded] = useState(true);
 
