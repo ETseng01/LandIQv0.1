@@ -226,43 +226,6 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({ searchedLocation }) => 
     setMapInstance(null);
   }, []);
 
-  const getMarkerIcon = (permitType: string, riskLevel: string, isSearchMarker: boolean = false) => {
-    if (isSearchMarker) {
-      return {
-        path: google.maps.SymbolPath.CIRCLE,
-        fillColor: '#ef4444',
-        fillOpacity: 1,
-        strokeWeight: 2,
-        strokeColor: '#ffffff',
-        scale: 12
-      };
-    }
-    
-    let fillColor = permitType === 'residential' ? '#ef4444' : '#3b82f6';
-    let opacity = 1;
-    
-    switch (riskLevel) {
-      case 'low':
-        opacity = 0.7;
-        break;
-      case 'medium':
-        opacity = 0.85;
-        break;
-      case 'high':
-        opacity = 1;
-        break;
-    }
-    
-    return {
-      path: google.maps.SymbolPath.CIRCLE,
-      fillColor,
-      fillOpacity: opacity,
-      strokeWeight: 2,
-      strokeColor: '#ffffff',
-      scale: 10
-    };
-  };
-
   if (!isLoaded) {
     return (
       <div className="h-full flex items-center justify-center">
@@ -288,34 +251,6 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({ searchedLocation }) => 
           fullscreenControl: true
         }}
       >
-        {properties.map((property) => (
-          <Marker
-            key={property.id}
-            position={{ lat: property.lat!, lng: property.lng! }}
-            onClick={() => {
-              setSelectedProperty(property);
-              setShowStreetView(false);
-            }}
-            icon={getMarkerIcon(property.permitType, property.riskLevel)}
-            animation={google.maps.Animation.DROP}
-            zIndex={2}
-          />
-        ))}
-
-        {searchMarker && (
-          <Marker
-            key="search-marker"
-            position={{ lat: searchMarker.lat!, lng: searchMarker.lng! }}
-            onClick={() => {
-              setSelectedProperty(searchMarker);
-              setShowStreetView(false);
-            }}
-            icon={getMarkerIcon('residential', 'low', true)}
-            animation={google.maps.Animation.BOUNCE}
-            zIndex={1000}
-          />
-        )}
-
         {selectedProperty && !showStreetView && (
           <InfoWindow
             position={{ lat: selectedProperty.lat!, lng: selectedProperty.lng! }}
@@ -331,7 +266,7 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({ searchedLocation }) => 
                     <p>Permit Type: <span className="capitalize">{selectedProperty.permitType}</span></p>
                     <p>Processing Time: {selectedProperty.estimatedDays} days</p>
                     <p>Risk Level: <span className="capitalize">{selectedProperty.riskLevel}</span></p>
-                    <p>Confidence: {selectedProperty.confidence}%</p>
+                    <p>Land Confidence: {selectedProperty.confidence}%</p>
                   </div>
                   <div className="space-y-2">
                     <button

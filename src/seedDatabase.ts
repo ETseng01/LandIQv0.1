@@ -23,7 +23,7 @@ const sampleProperties = [
     permitType: 'residential',
     confidence: 92,
     riskLevel: 'low',
-    searchDate: '2024-05-10',
+    searchDate: '2025-04-17',
     createdAt: Timestamp.now()
   },
   {
@@ -32,7 +32,7 @@ const sampleProperties = [
     permitType: 'residential',
     confidence: 85,
     riskLevel: 'medium',
-    searchDate: '2024-05-12',
+    searchDate: '2025-04-17',
     createdAt: Timestamp.now()
   },
   {
@@ -41,7 +41,7 @@ const sampleProperties = [
     permitType: 'commercial',
     confidence: 78,
     riskLevel: 'medium',
-    searchDate: '2024-05-14',
+    searchDate: '2025-04-17',
     createdAt: Timestamp.now()
   },
   {
@@ -50,7 +50,7 @@ const sampleProperties = [
     permitType: 'residential',
     confidence: 95,
     riskLevel: 'low',
-    searchDate: '2024-05-15',
+    searchDate: '2025-04-17',
     createdAt: Timestamp.now()
   },
   {
@@ -59,7 +59,7 @@ const sampleProperties = [
     permitType: 'commercial',
     confidence: 70,
     riskLevel: 'high',
-    searchDate: '2024-05-16',
+    searchDate: '2025-04-17',
     createdAt: Timestamp.now()
   },
   {
@@ -68,7 +68,7 @@ const sampleProperties = [
     permitType: 'residential',
     confidence: 88,
     riskLevel: 'low',
-    searchDate: '2024-05-17',
+    searchDate: '2025-04-17',
     createdAt: Timestamp.now()
   },
   {
@@ -77,7 +77,7 @@ const sampleProperties = [
     permitType: 'commercial',
     confidence: 82,
     riskLevel: 'medium',
-    searchDate: '2024-05-18',
+    searchDate: '2025-04-17',
     createdAt: Timestamp.now()
   },
   {
@@ -86,7 +86,7 @@ const sampleProperties = [
     permitType: 'residential',
     confidence: 91,
     riskLevel: 'low',
-    searchDate: '2024-05-19',
+    searchDate: '2025-04-17',
     createdAt: Timestamp.now()
   },
   {
@@ -95,7 +95,7 @@ const sampleProperties = [
     permitType: 'commercial',
     confidence: 75,
     riskLevel: 'high',
-    searchDate: '2024-05-20',
+    searchDate: '2025-04-17',
     createdAt: Timestamp.now()
   },
   {
@@ -104,7 +104,7 @@ const sampleProperties = [
     permitType: 'residential',
     confidence: 87,
     riskLevel: 'medium',
-    searchDate: '2024-05-21',
+    searchDate: '2025-04-17',
     createdAt: Timestamp.now()
   },
   {
@@ -113,7 +113,7 @@ const sampleProperties = [
     permitType: 'residential',
     confidence: 89,
     riskLevel: 'low',
-    searchDate: '2024-05-22',
+    searchDate: '2025-04-17',
     createdAt: Timestamp.now()
   },
   {
@@ -122,7 +122,7 @@ const sampleProperties = [
     permitType: 'commercial',
     confidence: 73,
     riskLevel: 'high',
-    searchDate: '2024-05-23',
+    searchDate: '2025-04-17',
     createdAt: Timestamp.now()
   },
   {
@@ -131,7 +131,7 @@ const sampleProperties = [
     permitType: 'residential',
     confidence: 93,
     riskLevel: 'low',
-    searchDate: '2024-05-24',
+    searchDate: '2025-04-17',
     createdAt: Timestamp.now()
   },
   {
@@ -140,7 +140,7 @@ const sampleProperties = [
     permitType: 'commercial',
     confidence: 84,
     riskLevel: 'medium',
-    searchDate: '2024-05-25',
+    searchDate: '2025-04-17',
     createdAt: Timestamp.now()
   },
   {
@@ -149,7 +149,7 @@ const sampleProperties = [
     permitType: 'residential',
     confidence: 94,
     riskLevel: 'low',
-    searchDate: '2024-05-26',
+    searchDate: '2025-04-17',
     createdAt: Timestamp.now()
   }
 ];

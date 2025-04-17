@@ -331,7 +331,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ onClose }) => {
                     </span>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500">AI Confidence</p>
+                    <p className="text-sm text-gray-500">Land Confidence</p>
                     <div className="w-full bg-gray-200 rounded-full h-2.5 mt-2">
                       <div 
                         className="bg-gradient-to-r from-purple-600 to-blue-500 h-2.5 rounded-full" 
