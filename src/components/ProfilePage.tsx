@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { db } from '../firebase';
 import { collection, getDocs, query, orderBy, deleteDoc, doc } from 'firebase/firestore';
-import { MapPin, Clock, Building2, Home, Trash2, ArrowLeft } from 'lucide-react';
+import { MapPin, Clock, Building2, Home, Trash2, ArrowLeft, Map as MapIcon, X } from 'lucide-react';
+import { GoogleMap, useJsApiLoader, Marker, InfoWindow, StreetViewPanorama } from '@react-google-maps/api';
 
 interface Property {
   id: string;
@@ -11,11 +12,24 @@ interface Property {
   confidence: number;
   riskLevel: 'low' | 'medium' | 'high';
   searchDate: string;
+  lat?: number;
+  lng?: number;
 }
 
 interface ProfilePageProps {
   onClose: () => void;
 }
+
+const mapContainerStyle = {
+  width: '100%',
+  height: '400px',
+  borderRadius: '0.75rem'
+};
+
+const defaultCenter = {
+  lat: 37.7749,
+  lng: -122.4194
+};
 
 const ProfilePage: React.FC<ProfilePageProps> = ({ onClose }) => {
   const [savedProperties, setSavedProperties] = useState<Property[]>([]);
@@ -23,6 +37,13 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ onClose }) => {
   const [deleting, setDeleting] = useState<string | null>(null);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
+  const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
+  const [showStreetView, setShowStreetView] = useState(false);
+
+  const { isLoaded } = useJsApiLoader({
+    id: 'google-map-script',
+    googleMapsApiKey: 'AIzaSyCHc60c2uiExWQsZgap0qPoJCLVkM37au8'
+  });
 
   useEffect(() => {
     fetchSavedProperties();
@@ -48,7 +69,9 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ onClose }) => {
           permitType: data.permitType,
           confidence: data.confidence,
           riskLevel: data.riskLevel,
-          searchDate: data.searchDate
+          searchDate: data.searchDate,
+          lat: data.lat,
+          lng: data.lng
         });
       });
       
@@ -73,6 +96,11 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ onClose }) => {
     try {
       await deleteDoc(doc(db, 'properties', propertyId));
       setSavedProperties(prev => prev.filter(property => property.id !== propertyId));
+      
+      if (selectedProperty?.id === propertyId) {
+        setSelectedProperty(null);
+      }
+      
       displayToast('Property deleted successfully');
     } catch (error) {
       console.error("Error deleting property: ", error);
@@ -80,6 +108,20 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ onClose }) => {
     } finally {
       setDeleting(null);
     }
+  };
+
+  const handlePropertyClick = (property: Property) => {
+    setSelectedProperty(property);
+    setShowStreetView(false);
+  };
+
+  const closePropertyDetails = () => {
+    setSelectedProperty(null);
+    setShowStreetView(false);
+  };
+
+  const toggleStreetView = () => {
+    setShowStreetView(!showStreetView);
   };
 
   const getRiskLevelColor = (riskLevel: string) => {
@@ -150,8 +192,9 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ onClose }) => {
               {savedProperties.map((property, index) => (
                 <div 
                   key={property.id} 
-                  className="p-4 rounded-xl bg-gradient-to-br from-purple-50 to-blue-50 hover:from-purple-100 hover:to-blue-100 transition-all duration-300 animate-slideUp"
+                  className="p-4 rounded-xl bg-gradient-to-br from-purple-50 to-blue-50 hover:from-purple-100 hover:to-blue-100 transition-all duration-300 animate-slideUp cursor-pointer"
                   style={{ animationDelay: `${index * 0.1}s` }}
+                  onClick={() => handlePropertyClick(property)}
                 >
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
@@ -185,7 +228,10 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ onClose }) => {
                     </div>
                     
                     <button 
-                      onClick={() => handleDeleteProperty(property.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteProperty(property.id);
+                      }}
                       disabled={deleting === property.id}
                       className="ml-4 p-2 text-gray-400 hover:text-red-500 transition-colors rounded-full hover:bg-red-50"
                       title="Delete property"
@@ -202,6 +248,103 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ onClose }) => {
             </div>
           )}
         </div>
+
+        {/* Property Details Modal */}
+        {selectedProperty && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-2xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto animate-slideUp">
+              <div className="p-6">
+                <div className="flex justify-between items-start mb-6">
+                  <h3 className="text-xl font-semibold">{selectedProperty.address}</h3>
+                  <button 
+                    onClick={closePropertyDetails}
+                    className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+                  >
+                    <X className="h-5 w-5 text-gray-500" />
+                  </button>
+                </div>
+
+                {isLoaded && selectedProperty.lat && selectedProperty.lng && (
+                  <div className="mb-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center space-x-2">
+                        {showStreetView ? (
+                          <MapIcon className="h-5 w-5 text-purple-500" />
+                        ) : (
+                          <MapPin className="h-5 w-5 text-purple-500" />
+                        )}
+                        <h4 className="font-medium">
+                          {showStreetView ? 'Street View' : 'Property Location'}
+                        </h4>
+                      </div>
+                      <button
+                        onClick={toggleStreetView}
+                        className="text-sm text-purple-600 hover:text-purple-800"
+                      >
+                        {showStreetView ? 'Show Map' : 'Show Street View'}
+                      </button>
+                    </div>
+                    
+                    <div className="h-[400px] rounded-xl overflow-hidden">
+                      <GoogleMap
+                        mapContainerStyle={mapContainerStyle}
+                        center={{ lat: selectedProperty.lat, lng: selectedProperty.lng }}
+                        zoom={15}
+                      >
+                        {!showStreetView && (
+                          <Marker
+                            position={{ lat: selectedProperty.lat, lng: selectedProperty.lng }}
+                            icon={{
+                              path: google.maps.SymbolPath.CIRCLE,
+                              fillColor: '#7c3aed',
+                              fillOpacity: 1,
+                              strokeWeight: 2,
+                              strokeColor: '#ffffff',
+                              scale: 12
+                            }}
+                          />
+                        )}
+                        {showStreetView && (
+                          <StreetViewPanorama
+                            position={{ lat: selectedProperty.lat, lng: selectedProperty.lng }}
+                            visible={true}
+                          />
+                        )}
+                      </GoogleMap>
+                    </div>
+                  </div>
+                )}
+
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div>
+                    <p className="text-sm text-gray-500">Permit Type</p>
+                    <p className="font-medium capitalize">{selectedProperty.permitType}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Processing Time</p>
+                    <p className="font-medium">{selectedProperty.estimatedDays} days</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Risk Level</p>
+                    <span className={`inline-block mt-1 px-3 py-1 rounded-full text-sm ${getRiskLevelColor(selectedProperty.riskLevel)}`}>
+                      {selectedProperty.riskLevel.toUpperCase()}
+                    </span>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">AI Confidence</p>
+                    <div className="w-full bg-gray-200 rounded-full h-2.5 mt-2">
+                      <div 
+                        className="bg-gradient-to-r from-purple-600 to-blue-500 h-2.5 rounded-full" 
+                        style={{ width: `${selectedProperty.confidence}%` }}
+                      ></div>
+                    </div>
+                    <p className="text-sm mt-1">{selectedProperty.confidence}% confident</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
       
       {/* Toast Notification */}
