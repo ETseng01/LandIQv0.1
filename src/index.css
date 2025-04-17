@@ -8,7 +8,7 @@
   }
   
   body {
-    @apply bg-gradient-to-br from-slate-50 to-purple-50 min-h-screen font-body text-gray-800;
+    @apply bg-gradient-to-br from-emerald-50 to-neutral-50 min-h-screen font-body text-gray-800;
     line-height: 1.5;
     letter-spacing: 0.01em;
   }
@@ -37,11 +37,11 @@
   }
   
   .primary-gradient {
-    @apply bg-gradient-to-r from-purple-600 to-blue-500 text-white hover:from-purple-700 hover:to-blue-600 transition-all duration-300 shadow-md hover:shadow-lg;
+    @apply bg-gradient-to-r from-emerald-800 to-neutral-700 text-white hover:from-emerald-900 hover:to-neutral-800 transition-all duration-300 shadow-md hover:shadow-lg;
   }
   
   .secondary-gradient {
-    @apply bg-gradient-to-r from-amber-500 to-orange-600 text-white hover:from-amber-600 hover:to-orange-700 transition-all duration-300 shadow-md hover:shadow-lg;
+    @apply bg-gradient-to-r from-neutral-700 to-emerald-800 text-white hover:from-neutral-800 hover:to-emerald-900 transition-all duration-300 shadow-md hover:shadow-lg;
   }
 
   .glass-card {
@@ -75,15 +75,15 @@
   }
 
   .bento-icon {
-    @apply w-8 h-8 text-purple-600 transition-transform duration-300 ease-in-out group-hover:scale-110;
+    @apply w-8 h-8 text-emerald-800 transition-transform duration-300 ease-in-out group-hover:scale-110;
   }
 
   .bento-title {
-    @apply text-lg font-semibold bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent;
+    @apply text-lg font-semibold bg-gradient-to-r from-emerald-800 to-neutral-700 bg-clip-text text-transparent;
   }
 
   .stat-value {
-    @apply text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent;
+    @apply text-3xl font-bold bg-gradient-to-r from-emerald-800 to-neutral-700 bg-clip-text text-transparent;
   }
 
   .stat-label {
@@ -96,11 +96,11 @@
   }
 
   .search-input {
-    @apply w-full pl-12 pr-4 py-4 rounded-2xl border-2 border-purple-200 focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white/90 backdrop-blur-sm shadow-lg text-lg;
+    @apply w-full pl-12 pr-4 py-4 rounded-2xl border-2 border-emerald-200 focus:ring-2 focus:ring-emerald-500 focus:border-transparent bg-white/90 backdrop-blur-sm shadow-lg text-lg;
   }
 
   .search-icon {
-    @apply absolute left-4 top-1/2 transform -translate-y-1/2 text-purple-400 w-6 h-6;
+    @apply absolute left-4 top-1/2 transform -translate-y-1/2 text-emerald-400 w-6 h-6;
   }
 
   .search-button {
@@ -109,7 +109,7 @@
   
   .hero-section {
     @apply relative overflow-hidden rounded-3xl mb-8 p-8 md:p-12 flex flex-col justify-center min-h-[300px];
-    background: linear-gradient(135deg, rgba(106, 17, 203, 0.9) 0%, rgba(37, 117, 252, 0.9) 100%);
+    background: linear-gradient(135deg, rgba(6, 78, 59, 0.9) 0%, rgba(64, 64, 64, 0.9) 100%);
   }
   
   .hero-content {
@@ -127,7 +127,7 @@
   }
   
   .hero-cta {
-    @apply inline-flex items-center px-6 py-3 rounded-xl bg-white text-purple-700 font-medium shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300;
+    @apply inline-flex items-center px-6 py-3 rounded-xl bg-white text-emerald-800 font-medium shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300;
     animation: fadeInUp 1.2s ease-out;
   }
   
@@ -137,7 +137,7 @@
   
   .nav-button::after {
     content: '';
-    @apply absolute bottom-0 left-1/2 w-0 h-0.5 bg-gradient-to-r from-purple-600 to-blue-500 transition-all duration-300 -translate-x-1/2;
+    @apply absolute bottom-0 left-1/2 w-0 h-0.5 bg-gradient-to-r from-emerald-800 to-neutral-700 transition-all duration-300 -translate-x-1/2;
   }
   
   .nav-button:hover::after {

@@ -6,6 +6,24 @@ export default {
   ],
   theme: {
     extend: {
+      colors: {
+        primary: {
+          DEFAULT: '#065f46', // emerald-800
+          hover: '#064e3b', // emerald-900
+        },
+        secondary: {
+          DEFAULT: '#404040', // neutral-700
+          hover: '#262626', // neutral-800
+        },
+        accent: {
+          DEFAULT: '#059669', // emerald-600
+          hover: '#047857', // emerald-700
+        },
+        background: {
+          light: '#f0fdf4', // emerald-50
+          dark: '#fafafa', // neutral-50
+        }
+      },
       fontFamily: {
         heading: ['Montserrat', 'sans-serif'],
         body: ['Open Sans', 'sans-serif'],

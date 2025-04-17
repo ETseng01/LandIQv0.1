@@ -1,8 +1,9 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { GoogleMap, useJsApiLoader, Marker, InfoWindow, StreetViewPanorama } from '@react-google-maps/api';
 import { db } from '../firebase';
 import { collection, getDocs, query, orderBy, limit } from 'firebase/firestore';
 import { MapPin } from 'lucide-react';
+import { PermitOverlayControls, PermitLegend } from './PermitOverlay';
 
 interface Property {
   id: string;
@@ -32,6 +33,78 @@ const defaultCenter = {
   lng: -122.4194
 };
 
+// Helper function to check if circles overlap
+const doCirclesOverlap = (circle1: any, circle2: any) => {
+  const dx = circle1.center.lat - circle2.center.lat;
+  const dy = circle1.center.lng - circle2.center.lng;
+  const distance = Math.sqrt(dx * dx + dy * dy);
+  return distance < (circle1.radius + circle2.radius) / 5000; // Convert meters to degrees roughly
+};
+
+// Helper function to adjust circle radius to prevent overlap
+const adjustCircleRadius = (circles: any[]) => {
+  const adjustedCircles = [...circles];
+  let hasOverlap = true;
+  const minRadius = 200; // Minimum radius in meters
+  
+  while (hasOverlap) {
+    hasOverlap = false;
+    for (let i = 0; i < adjustedCircles.length; i++) {
+      for (let j = i + 1; j < adjustedCircles.length; j++) {
+        if (doCirclesOverlap(adjustedCircles[i], adjustedCircles[j])) {
+          hasOverlap = true;
+          // Reduce radius of the larger circle
+          if (adjustedCircles[i].radius > adjustedCircles[j].radius) {
+            adjustedCircles[i].radius = Math.max(adjustedCircles[i].radius * 0.9, minRadius);
+          } else {
+            adjustedCircles[j].radius = Math.max(adjustedCircles[j].radius * 0.9, minRadius);
+          }
+        }
+      }
+    }
+  }
+  return adjustedCircles;
+};
+
+// Generate mock regulatory data with adjusted placement
+const generateMockRegulations = () => {
+  const regulations = [];
+  const baseRadius = 800; // Base radius in meters
+  const gridSize = 3; // 3x3 grid
+  const latSpacing = 0.02; // Spacing between circles
+  const lngSpacing = 0.02;
+  
+  for (let i = 0; i < gridSize; i++) {
+    for (let j = 0; j < gridSize; j++) {
+      const lat = defaultCenter.lat + (i - 1) * latSpacing;
+      const lng = defaultCenter.lng + (j - 1) * lngSpacing;
+      
+      regulations.push({
+        id: `region-${i}-${j}`,
+        center: { lat, lng },
+        radius: baseRadius + Math.random() * 200, // Add some variation
+        restrictiveness: Math.random(),
+        permitTypes: ['residential', 'commercial', 'industrial'],
+        yearData: {
+          2020: Math.random(),
+          2021: Math.random(),
+          2022: Math.random(),
+          2023: Math.random(),
+          2024: Math.random(),
+        }
+      });
+    }
+  }
+  
+  // Add some random offset to make it look more natural
+  regulations.forEach(reg => {
+    reg.center.lat += (Math.random() - 0.5) * 0.01;
+    reg.center.lng += (Math.random() - 0.5) * 0.01;
+  });
+  
+  return adjustCircleRadius(regulations);
+};
+
 // Sample architectural photos for demo
 const getArchitecturalPhotos = (permitType: string) => {
   if (permitType === 'residential') {
@@ -56,6 +129,14 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({ searchedLocation }) => 
   const [mapInstance, setMapInstance] = useState<google.maps.Map | null>(null);
   const [searchMarker, setSearchMarker] = useState<Property | null>(null);
   const [showStreetView, setShowStreetView] = useState(false);
+  
+  // Overlay controls state
+  const [opacity, setOpacity] = useState(0.7);
+  const [selectedYear, setSelectedYear] = useState(2024);
+  const [showComparison, setShowComparison] = useState(false);
+  const [permitType, setPermitType] = useState('all');
+  const [regulations] = useState(generateMockRegulations());
+  const [selectedRegion, setSelectedRegion] = useState<any>(null);
 
   const { isLoaded } = useJsApiLoader({
     id: 'google-map-script',
@@ -125,6 +206,48 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({ searchedLocation }) => 
     }
   }, [searchedLocation, mapInstance]);
 
+  useEffect(() => {
+    if (!mapInstance) return;
+
+    // Clear existing circles
+    regulations.forEach(region => {
+      if (region.circle) {
+        region.circle.setMap(null);
+      }
+    });
+
+    // Draw new circles with adjusted placement
+    regulations.forEach(region => {
+      if (permitType !== 'all' && !region.permitTypes.includes(permitType)) return;
+
+      const restrictiveness = showComparison
+        ? region.yearData[selectedYear] - region.yearData[selectedYear - 1]
+        : region.yearData[selectedYear];
+
+      const circle = new google.maps.Circle({
+        center: region.center,
+        radius: region.radius,
+        fillColor: restrictiveness > 0.5 ? '#3b82f6' : '#ef4444',
+        fillOpacity: opacity * (restrictiveness > 0.5 ? restrictiveness : 1 - restrictiveness),
+        strokeColor: '#374151',
+        strokeWeight: 1,
+        map: mapInstance,
+        clickable: true,
+        zIndex: Math.floor(restrictiveness * 10) // Higher restrictiveness = higher z-index
+      });
+
+      circle.addListener('click', () => {
+        setSelectedRegion({
+          ...region,
+          restrictiveness,
+          position: region.center
+        });
+      });
+
+      region.circle = circle;
+    });
+  }, [mapInstance, opacity, selectedYear, showComparison, permitType]);
+
   const onLoad = useCallback((map: google.maps.Map) => {
     setMapInstance(map);
   }, []);
@@ -133,7 +256,7 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({ searchedLocation }) => 
     setMapInstance(null);
   }, []);
 
-  const getMarkerIcon = (permitType: string, riskLevel: string, isSearchMarker: boolean = false) => {
+  const getMarkerIcon = (permitType: string, isSearchMarker: boolean = false) => {
     if (isSearchMarker) {
       return {
         path: google.maps.SymbolPath.CIRCLE,
@@ -145,25 +268,10 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({ searchedLocation }) => 
       };
     }
     
-    let fillColor = permitType === 'residential' ? '#7c3aed' : '#3b82f6';
-    let opacity = 1;
-    
-    switch (riskLevel) {
-      case 'low':
-        opacity = 0.7;
-        break;
-      case 'medium':
-        opacity = 0.85;
-        break;
-      case 'high':
-        opacity = 1;
-        break;
-    }
-    
     return {
       path: google.maps.SymbolPath.CIRCLE,
-      fillColor,
-      fillOpacity: opacity,
+      fillColor: permitType === 'residential' ? '#065f46' : '#404040',
+      fillOpacity: 1,
       strokeWeight: 2,
       strokeColor: '#ffffff',
       scale: 10
@@ -173,7 +281,7 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({ searchedLocation }) => 
   if (!isLoaded) {
     return (
       <div className="h-full flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-emerald-800"></div>
       </div>
     );
   }
@@ -203,7 +311,7 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({ searchedLocation }) => 
               setSelectedProperty(property);
               setShowStreetView(false);
             }}
-            icon={getMarkerIcon(property.permitType, property.riskLevel)}
+            icon={getMarkerIcon(property.permitType)}
             animation={google.maps.Animation.DROP}
           />
         ))}
@@ -216,7 +324,7 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({ searchedLocation }) => 
               setSelectedProperty(searchMarker);
               setShowStreetView(false);
             }}
-            icon={getMarkerIcon('residential', 'low', true)}
+            icon={getMarkerIcon('residential', true)}
             animation={google.maps.Animation.BOUNCE}
             zIndex={1000}
           />
@@ -242,7 +350,7 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({ searchedLocation }) => 
                   <div className="space-y-2">
                     <button
                       onClick={() => setShowStreetView(true)}
-                      className="w-full bg-purple-600 text-white px-3 py-1.5 rounded-lg text-sm hover:bg-purple-700 transition-colors"
+                      className="w-full bg-emerald-800 text-white px-3 py-1.5 rounded-lg text-sm hover:bg-emerald-900 transition-colors"
                     >
                       View Street View
                     </button>
@@ -269,6 +377,27 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({ searchedLocation }) => 
           </InfoWindow>
         )}
 
+        {selectedRegion && (
+          <InfoWindow
+            position={selectedRegion.position}
+            onCloseClick={() => setSelectedRegion(null)}
+          >
+            <div className="p-2">
+              <h3 className="font-medium text-gray-800 mb-2">Regulatory Information</h3>
+              <div className="text-sm space-y-1">
+                <p>Restrictiveness: {(selectedRegion.restrictiveness * 100).toFixed(1)}%</p>
+                <p>Permit Types: {selectedRegion.permitTypes.join(', ')}</p>
+                <p>Year: {selectedYear}</p>
+                {showComparison && (
+                  <p className="text-xs text-gray-500">
+                    Showing change from {selectedYear - 1} to {selectedYear}
+                  </p>
+                )}
+              </div>
+            </div>
+          </InfoWindow>
+        )}
+
         {selectedProperty && showStreetView && (
           <StreetViewPanorama
             position={{ lat: selectedProperty.lat!, lng: selectedProperty.lng! }}
@@ -278,30 +407,24 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({ searchedLocation }) => 
         )}
       </GoogleMap>
 
+      <PermitOverlayControls
+        opacity={opacity}
+        setOpacity={setOpacity}
+        selectedYear={selectedYear}
+        setSelectedYear={setSelectedYear}
+        showComparison={showComparison}
+        setShowComparison={setShowComparison}
+        permitType={permitType}
+        setPermitType={setPermitType}
+      />
+
+      <PermitLegend />
+
       {loading && (
         <div className="absolute inset-0 bg-white/70 flex items-center justify-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-emerald-800"></div>
         </div>
       )}
-
-      {/* Map Legend */}
-      <div className="absolute bottom-4 left-4 bg-white/90 backdrop-blur-sm p-4 rounded-lg shadow-md">
-        <h4 className="font-medium text-gray-800 mb-2">Map Legend</h4>
-        <div className="flex items-center space-x-4 text-sm">
-          <div className="flex items-center">
-            <span className="inline-block w-3 h-3 rounded-full bg-purple-500 mr-2"></span>
-            <span>Residential</span>
-          </div>
-          <div className="flex items-center">
-            <span className="inline-block w-3 h-3 rounded-full bg-blue-500 mr-2"></span>
-            <span>Commercial</span>
-          </div>
-          <div className="flex items-center">
-            <span className="inline-block w-3 h-3 rounded-full bg-red-500 mr-2"></span>
-            <span>Search</span>
-          </div>
-        </div>
-      </div>
     </div>
   );
 };
