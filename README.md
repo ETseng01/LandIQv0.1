@@ -14,3 +14,6 @@ Google Cloud Platform
 
 hosted by StackBlitz:
 https://peppy-marzipan-41216d.netlify.app/
+
+edit on StackBlitz:
+https://stackblitz.com/edit/landiqv-01?file=index.html
