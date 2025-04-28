@@ -75,6 +75,12 @@ function App() {
   const notificationsRef = useRef<HTMLDivElement>(null);
   const notificationButtonRef = useRef<HTMLButtonElement>(null);
 
+  const resetMap = () => {
+    setSearchQuery('');
+    setPrediction(null);
+    setSearchedLocation(null);
+  };
+
   // Handle scroll for sticky header
   useEffect(() => {
     const header = document.getElementById('header');
@@ -626,8 +632,7 @@ function App() {
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4">
+      <main className="px-4">
         {/* Hero Section */}
         <div className="hero-section mt-8">
           <div className="hero-content">
@@ -684,81 +689,74 @@ function App() {
           )}
         </form>
 
-        {/* Bento Grid Layout */}
-        <div className="bento-grid">
-          {/* Map Section */}
-          <div className="bento-item bento-item-large">
-            <div className="bento-item-header">
-              <Map className="bento-icon" />
-              <h2 className="bento-title">Property Map</h2>
+        {/* Map Section */}
+        <div className="h-[600px] rounded-lg overflow-hidden mb-8">
+          <InteractiveMap searchedLocation={searchedLocation} resetMap={resetMap} />
+        </div>
+
+        {/* Prediction Results */}
+        {prediction && (
+          <div className="glass-card p-6 rounded-xl mb-8 animate-slideUp">
+            <div className="flex items-center space-x-3 mb-6">
+              <AlertTriangle className="h-6 w-6 text-purple-500" />
+              <h2 className="text-xl font-semibold">Permit Prediction</h2>
             </div>
-            <div className="h-[400px] rounded-lg overflow-hidden">
-              <InteractiveMap searchedLocation={searchedLocation} />
+            
+            <div className="grid md:grid-cols-3 gap-6">
+              <div className="flex items-start space-x-3">
+                <MapPin className="w-5 h-5 text-purple-500 mt-1" />
+                <div>
+                  <p className="text-sm text-gray-500">Property Address</p>
+                  <p className="font-medium text-gray-800">{prediction.address}</p>
+                </div>
+              </div>
+
+              <div className="flex items-start space-x-3">
+                <Clock className="w-5 h-5 text-purple-500 mt-1" />
+                <div>
+                  <p className="text-sm text-gray-500">Processing Time</p>
+                  <p className="font-medium text-gray-800">{prediction.estimatedDays} days</p>
+                </div>
+              </div>
+
+              <div className="flex items-start space-x-3">
+                <Filter className="w-5 h-5 text-purple-500 mt-1" />
+                <div>
+                  <p className="text-sm text-gray-500">Land Confidence</p>
+                  <div className="w-full bg-gray-200 rounded-full h-2.5 mt-2">
+                    <div 
+                      className="bg-gradient-to-r from-purple-600 to-blue-500 h-2.5 rounded-full" 
+                      style={{ width: `${prediction.confidence}%` }}
+                    ></div>
+                  </div>
+                  <p className="text-sm mt-1">{prediction.confidence}% confident</p>
+                </div>
+              </div>
             </div>
+
+            <button 
+              onClick={saveProperty}
+              disabled={savingProperty}
+              className="w-full primary-gradient rounded-xl py-3 flex items-center justify-center space-x-2 mt-6 hover:scale-105 transition-transform duration-300"
+            >
+              {savingProperty ? (
+                <span>Saving...</span>
+              ) : (
+                <>
+                  <Save className="w-5 h-5" />
+                  <span>Save Property</span>
+                </>
+              )}
+            </button>
           </div>
+        )}
 
-          {/* Prediction Results */}
-          {prediction && (
-            <div className="bento-item animate-slideUp">
-              <div className="bento-item-header">
-                <AlertTriangle className="bento-icon" />
-                <h2 className="bento-title">Permit Prediction</h2>
-              </div>
-              
-              <div className="space-y-6">
-                <div className="flex items-start space-x-3">
-                  <MapPin className="w-5 h-5 text-purple-500 mt-1" />
-                  <div>
-                    <p className="text-sm text-gray-500">Property Address</p>
-                    <p className="font-medium text-gray-800">{prediction.address}</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start space-x-3">
-                  <Clock className="w-5 h-5 text-purple-500 mt-1" />
-                  <div>
-                    <p className="text-sm text-gray-500">Processing Time</p>
-                    <p className="font-medium text-gray-800">{prediction.estimatedDays} days</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start space-x-3">
-                  <Filter className="w-5 h-5 text-purple-500 mt-1" />
-                  <div>
-                    <p className="text-sm text-gray-500">Land Confidence</p>
-                    <div className="w-full bg-gray-200 rounded-full h-2.5 mt-2">
-                      <div 
-                        className="bg-gradient-to-r from-purple-600 to-blue-500 h-2.5 rounded-full" 
-                        style={{ width: `${prediction.confidence}%` }}
-                      ></div>
-                    </div>
-                    <p className="text-sm mt-1">{prediction.confidence}% confident</p>
-                  </div>
-                </div>
-
-                <button 
-                  onClick={saveProperty}
-                  disabled={savingProperty}
-                  className="w-full primary-gradient rounded-xl py-3 flex items-center justify-center space-x-2 mt-4 hover:scale-105 transition-transform duration-300"
-                >
-                  {savingProperty ? (
-                    <span>Saving...</span>
-                  ) : (
-                    <>
-                      <Save className="w-5 h-5" />
-                      <span>Save Property</span>
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
-          )}
-
+        <div className="grid md:grid-cols-2 gap-8 mb-8">
           {/* Quick Stats */}
-          <div className="bento-item">
-            <div className="bento-item-header">
-              <BarChart3 className="bento-icon" />
-              <h2 className="bento-title">Quick Stats</h2>
+          <div className="glass-card rounded-xl p-6">
+            <div className="flex items-center space-x-3 mb-6">
+              <BarChart3 className="h-6 w-6 text-purple-500" />
+              <h2 className="text-xl font-semibold">Quick Stats</h2>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="p-4 rounded-xl bg-gradient-to-br from-purple-50 to-blue-50 hover:from-purple-100 hover:to-blue-100 transition-colors duration-300">
@@ -781,14 +779,15 @@ function App() {
           </div>
 
           {/* Recent Properties */}
-          <div className="bento-item">
-            <div className="bento-item-header">
-              <History className="bento-icon" />
-              <h2 className="bento-title">Recent Properties</h2>
+          <div className="glass-card rounded-xl p-6">
+            <div className="flex items-center space-x-3 mb-6">
+              <History className="h-6 w-6 text-purple-500" />
+              <h2 className="text-xl font-semibold">Recent Properties</h2>
             </div>
             {loading ? (
               <div className="flex items-center justify-center h-40">
                 <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-purple-500"></div>
+              
               </div>
             ) : (
               <div className="space-y-4">

@@ -285,7 +285,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ onClose }) => {
                       </button>
                     </div>
                     
-                    <div className="h-[400px] rounded-xl overflow-hidden">
+                    <div className="h-[400px] rounded-xl overflow-hidden profile-map-container">
                       <GoogleMap
                         mapContainerStyle={mapContainerStyle}
                         center={{ lat: selectedProperty.lat, lng: selectedProperty.lng }}

@@ -1,12 +1,6 @@
 import React, { useState } from 'react';
 import { Layers, ChevronDown, ChevronUp } from 'lucide-react';
 
-// Enhanced permit overlay controls component
-// Author: Your Name
-// Last Modified: Current Date
-// Description: This component provides a user-friendly interface for controlling
-// map overlays, including opacity, year selection, and permit type filtering
-
 interface PermitOverlayControlsProps {
   opacity: number;
   setOpacity: (value: number) => void;
@@ -18,14 +12,7 @@ interface PermitOverlayControlsProps {
   setPermitType: (type: string) => void;
 }
 
-// Main controls component with collapsible interface
 export const PermitOverlayControls: React.FC<PermitOverlayControlsProps> = ({
-  opacity,
-  setOpacity,
-  selectedYear,
-  setSelectedYear,
-  showComparison,
-  setShowComparison,
   permitType,
   setPermitType
 }) => {
@@ -34,14 +21,13 @@ export const PermitOverlayControls: React.FC<PermitOverlayControlsProps> = ({
   return (
     <div className="absolute top-4 left-4 z-10">
       <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-        {/* Header - Always visible */}
         <button
           onClick={() => setIsExpanded(!isExpanded)}
           className="w-full px-4 py-3 flex items-center justify-between bg-emerald-800 text-white hover:bg-emerald-900 transition-colors"
         >
           <div className="flex items-center space-x-2">
             <Layers className="h-4 w-4" />
-            <span className="text-sm font-medium">Map Controls</span>
+            <span className="text-sm font-medium">Restriction Level</span>
           </div>
           {isExpanded ? (
             <ChevronUp className="h-4 w-4" />
@@ -50,64 +36,23 @@ export const PermitOverlayControls: React.FC<PermitOverlayControlsProps> = ({
           )}
         </button>
 
-        {/* Collapsible Content */}
         <div
           className={`transition-all duration-300 ease-in-out ${
             isExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
           } overflow-hidden`}
         >
-          <div className="p-4 space-y-4">
+          <div className="p-4">
             <div>
-              <label className="block text-sm text-gray-600 mb-1">Transparency</label>
-              <input
-                type="range"
-                min="0"
-                max="100"
-                value={opacity * 100}
-                onChange={(e) => setOpacity(Number(e.target.value) / 100)}
-                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-emerald-800"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm text-gray-600 mb-1">Year</label>
-              <select
-                value={selectedYear}
-                onChange={(e) => setSelectedYear(Number(e.target.value))}
-                className="w-full p-2 border border-gray-200 rounded-lg text-sm"
-              >
-                {[2020, 2021, 2022, 2023, 2024].map((year) => (
-                  <option key={year} value={year}>{year}</option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm text-gray-600 mb-1">Permit Type</label>
+              <label className="block text-sm text-gray-600 mb-1">Show Restrictions</label>
               <select
                 value={permitType}
                 onChange={(e) => setPermitType(e.target.value)}
                 className="w-full p-2 border border-gray-200 rounded-lg text-sm"
               >
-                <option value="all">All Permits</option>
-                <option value="residential">Residential</option>
-                <option value="commercial">Commercial</option>
-                <option value="industrial">Industrial</option>
+                <option value="all">All Restrictions</option>
+                <option value="less">Less Restrictive Areas</option>
+                <option value="more">More Restrictive Areas</option>
               </select>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600">Compare Years</span>
-              <button
-                onClick={() => setShowComparison(!showComparison)}
-                className={`px-3 py-1 rounded-lg text-sm ${
-                  showComparison 
-                    ? 'bg-emerald-800 text-white' 
-                    : 'bg-gray-100 text-gray-600'
-                }`}
-              >
-                {showComparison ? 'Enabled' : 'Disabled'}
-              </button>
             </div>
           </div>
         </div>
@@ -116,7 +61,6 @@ export const PermitOverlayControls: React.FC<PermitOverlayControlsProps> = ({
   );
 };
 
-// Legend component for map overlay interpretation
 export const PermitLegend: React.FC = () => {
   const [isExpanded, setIsExpanded] = useState(true);
 
@@ -141,16 +85,16 @@ export const PermitLegend: React.FC = () => {
       >
         <div className="p-4 space-y-2">
           <div className="flex items-center space-x-2">
+            <div className="w-4 h-4 bg-green-700 rounded-sm opacity-70" />
+            <span className="text-xs text-gray-600">Low Restriction Area</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <div className="w-4 h-4 bg-amber-500 rounded-sm opacity-70" />
+            <span className="text-xs text-gray-600">Medium Restriction Area</span>
+          </div>
+          <div className="flex items-center space-x-2">
             <div className="w-4 h-4 bg-red-500 rounded-sm opacity-70" />
-            <span className="text-xs text-gray-600">Less Restrictive</span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <div className="w-4 h-4 bg-blue-500 rounded-sm opacity-70" />
-            <span className="text-xs text-gray-600">More Restrictive</span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <div className="w-4 h-4 border-2 border-gray-400 rounded-sm" />
-            <span className="text-xs text-gray-600">Municipality Boundary</span>
+            <span className="text-xs text-gray-600">High Restriction Area</span>
           </div>
         </div>
       </div>
