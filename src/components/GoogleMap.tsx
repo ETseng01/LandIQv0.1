@@ -11,7 +11,7 @@ interface Property {
   estimatedDays: number;
   permitType: 'residential' | 'commercial';
   confidence: number;
-  riskLevel: 'low' | 'medium' | 'high';
+  riskLevel: 'low' | 'high';
   searchDate: string;
   lat?: number;
   lng?: number;
@@ -118,31 +118,11 @@ const getPermitOverlay = (
     return null;
   }
 
-  // Set color based on risk level
-  let color;
-  if (property.riskLevel === 'low') {
-    color = '#15803d'; // green-700
-  } else if (property.riskLevel === 'high') {
-    color = '#ef4444'; // red-500
-  } else {
-    color = '#f59e0b'; // amber-500
-  }
-
+  // Set color based on risk level (only green for low and red for high)
+  const color = property.riskLevel === 'low' ? '#15803d' : '#ef4444';
+  const opacity = 0.6;
   const baseRadius = 150;
-  let opacity = 0.5;
   
-  switch (property.riskLevel) {
-    case 'low':
-      opacity = 0.4;
-      break;
-    case 'medium':
-      opacity = 0.6;
-      break;
-    case 'high':
-      opacity = 0.8;
-      break;
-  }
-
   const basePosition = {
     lat: property.lat!,
     lng: property.lng!
@@ -296,7 +276,7 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({ searchedLocation, reset
         estimatedDays: 45,
         permitType: 'residential',
         confidence: 85,
-        riskLevel: 'medium',
+        riskLevel: 'low',
         searchDate: new Date().toISOString().split('T')[0],
         lat: searchedLocation.lat,
         lng: searchedLocation.lng

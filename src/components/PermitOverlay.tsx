@@ -89,10 +89,6 @@ export const PermitLegend: React.FC = () => {
             <span className="text-xs text-gray-600">Low Restriction Area</span>
           </div>
           <div className="flex items-center space-x-2">
-            <div className="w-4 h-4 bg-amber-500 rounded-sm opacity-70" />
-            <span className="text-xs text-gray-600">Medium Restriction Area</span>
-          </div>
-          <div className="flex items-center space-x-2">
             <div className="w-4 h-4 bg-red-500 rounded-sm opacity-70" />
             <span className="text-xs text-gray-600">High Restriction Area</span>
           </div>
